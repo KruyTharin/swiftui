@@ -7,80 +7,67 @@
 
 import SwiftUI
 
+struct WeatherData {
+    var imageName: String
+    var dayOfTheWeek: String
+    var temperature: String
+}
+
 struct WeatherView: View{
+    
+    let weatherData: [WeatherData] = [
+           WeatherData(imageName: "cloud.sun.fill", dayOfTheWeek: "Mon", temperature: "25°"),
+           WeatherData(imageName: "cloud.sun.rain.fill", dayOfTheWeek: "Tue", temperature: "20°"),
+           WeatherData(imageName: "cloud.sun.bolt.fill", dayOfTheWeek: "Wed", temperature: "19°"),
+           WeatherData(imageName: "sun.max.fill", dayOfTheWeek: "Thu", temperature: "40°"),
+           WeatherData(imageName: "cloud.sun.fill", dayOfTheWeek: "Fri", temperature: "25°"),
+           WeatherData(imageName: "cloud.sun.fill", dayOfTheWeek: "Sat", temperature: "25°")
+       ]
+    
+    @State private var isNight = false
+    
+    
+    
     var body: some View{
-        ZStack{
-            LinearGradient(gradient: Gradient(colors: [.blue, Color("primary")]), startPoint: .topLeading, endPoint: .bottomTrailing)
-                .edgesIgnoringSafeArea(.all)
-            
-            VStack{
-                Text("Phnom Penh, CAM")
-                    .font(.system(size: 32, weight: .medium, design: .default))
-                    .foregroundColor(.white)
-                    .frame(width: 300)
+        ZStack {
+            BackGroundColorView (isNight: $isNight)
                 
-                VStack (spacing: 8){
-                    Image(systemName: "cloud.sun.fill")
-                        .renderingMode(.original)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 150, height: 150)
-                    
-                    Text("76°")
-                        .font(.system(size: 70, weight: .semibold, design: .default))
+                VStack{
+                    Text("Phnom Penh, CAM")
+                        .font(.system(size: 32, weight: .medium, design: .default))
                         .foregroundColor(.white)
-                }.padding(.bottom, 40)
-                
-                HStack (spacing: 8){
-                    WeatherOfTheWeekView(
-                        imageName: "cloud.sun.fill",
-                        dayOfTheWeek: "Mon",
-                        temperature: "25°"
-                    )
-                    WeatherOfTheWeekView(
-                        imageName: "cloud.sun.rain.fill",
-                        dayOfTheWeek: "Tue",
-                        temperature: "20°"
-                    )
-                    WeatherOfTheWeekView(
-                        imageName: "cloud.sun.bolt.fill",
-                        dayOfTheWeek: "Wen",
-                        temperature: "19°"
-                    )
-                    WeatherOfTheWeekView(
-                        imageName: "sun.max.fill",
-                        dayOfTheWeek: "Thu",
-                        temperature: "40°"
-                    )
-                    WeatherOfTheWeekView(
-                        imageName: "cloud.sun.fill",
-                        dayOfTheWeek: "Fri",
-                        temperature: "25°"
-                    )
-                    WeatherOfTheWeekView(
-                        imageName: "cloud.sun.fill",
-                        dayOfTheWeek: "Sat",
-                        temperature: "25°"
-                    )
-                }
-            
-                Spacer()
-                
-                Button {
-                    print("Cliked")
-                } label: {
-                    Text("Change Day Time")
-                        .frame(width: 280, height: 50)
-                        .background(.white)
-                        .font(.system(size: 20, weight: .semibold, design: .default))
-                        .cornerRadius(8)
+                        .frame(width: 300)
                     
-                }
+                    CurrentWeatherView(imageName: isNight ? "moon.stars.fill" : "cloud.sun.fill", temperature: "30°")
+                    
+                    HStack (spacing: 8){
+                        
+                        ForEach(weatherData, id: \.dayOfTheWeek){ weather in
+                            WeatherOfTheWeekView(
+                                weather: weather
+                            )
+                        }
+                    }
                 
-                Spacer()
+                    Spacer()
+                    
+                    Button {
+                        isNight.toggle()
+                        print("Cliked", isNight)
+                    } label: {
+                        Text("Change Day Time")
+                            .frame(width: 280, height: 50)
+                            .background(.white)
+                            .font(.system(size: 20, weight: .semibold, design: .default))
+                            .cornerRadius(8)
+                        
+                    }
+                    
+                    Spacer()
+                }
             }
+
         }
-    }
 }
 
 struct CBackground_Previews: PreviewProvider {
@@ -92,25 +79,60 @@ struct CBackground_Previews: PreviewProvider {
 
 
 struct WeatherOfTheWeekView: View {
-    var imageName: String
-    var dayOfTheWeek: String
-    var temperature: String
+    var weather: WeatherData
     
     var body: some View {
         VStack(spacing: 8) {
-            Text(dayOfTheWeek.uppercased())
+            Text(weather.dayOfTheWeek.uppercased())
                 .font(.system(size: 20, weight: .semibold, design: .default))
                 .foregroundColor(.white)
             
-            Image(systemName: imageName)
+            Image(systemName: weather.imageName)
                 .renderingMode(.original)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 50, height: 50)
             
-            Text(temperature)
+            Text(weather.temperature)
                 .font(.system(size: 20, weight: .semibold, design: .default))
                 .foregroundColor(.white)
         }
     }
+}
+
+struct CurrentWeatherView: View {
+    
+    var imageName: String
+    var temperature: String
+    
+    var body: some View {
+        VStack (spacing: 8){
+            Image(systemName: imageName)
+                .renderingMode(.original)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 150, height: 150)
+            
+            Text(temperature)
+                .font(.system(size: 70, weight: .semibold, design: .default))
+                .foregroundColor(.white)
+        }.padding(.bottom, 40)
+    }
+}
+
+struct BackGroundColorView: View {
+    
+    @Binding var isNight : Bool
+    
+    var body: some View {
+            LinearGradient(gradient: Gradient(
+                colors: [
+                    isNight ? .black : .blue,
+                    isNight ? .gray :  Color("primary")
+                ]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing)
+                .edgesIgnoringSafeArea(.all)
+        }
+    
 }
